@@ -1,6 +1,6 @@
 <template>
   <div class="home">A</div>
-  <router-link href="/blackjack"><button>Go to Blackjack</button></router-link>
+  <router-link to="blackjack"><button>Go to Blackjack</button></router-link>
 </template>
 
 <script lang="ts">
