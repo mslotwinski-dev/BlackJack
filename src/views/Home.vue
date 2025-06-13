@@ -1,12 +1,18 @@
 <template>
-  <div class="home">A</div>
-  <router-link to="blackjack"><button>Go to Blackjack</button></router-link>
+  <Header />
+  <!-- <div class="home">A</div> -->
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import Header from '@/components/Header.vue'
 
 export default defineComponent({
-  components: {},
+  components: {
+    Header,
+  },
+  mounted() {
+    document.title = 'Zeus Cassino'
+  },
 })
 </script>

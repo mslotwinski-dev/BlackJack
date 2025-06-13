@@ -1,4 +1,5 @@
 <template>
+  <div class="moved"></div>
   <div class="home">
     <Game :key="key" />
     <button @click="key++">RESET</button>
@@ -16,6 +17,9 @@ export default defineComponent({
     return {
       key: 0,
     }
+  },
+  mounted() {
+    document.title = 'BlackJack | Zeus Cassino'
   },
 })
 </script>
