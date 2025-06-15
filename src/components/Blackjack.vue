@@ -1,75 +1,59 @@
 <template>
   <div class="cont">
-    <div class="section">
-      <div>Karty krupiera</div>
-      <div v-html="CroupierDeck.map((e) => e.name)" />
-    </div>
-    <div class="section">
-      <div>Suma kart krupiera</div>
-      <div v-html="Calculate(CroupierDeck)" />
-    </div>
-    <div class="section">
-      <div>Twoje karty</div>
-      <div v-html="Deck.map((e) => e.name)" />
-    </div>
-    <div class="section">
-      <div>Suma kart</div>
-      <div v-html="Calculate(Deck)" />
+    <div class="blackjack">
+      <Jackpot v-if="Calculate(Deck) == 21" />
     </div>
 
-    <div v-if="Calculate(Deck) == 21">
-      <div class="section">
-        <div>Black Jack!</div>
-      </div>
-    </div>
+    <Deck
+      :deck="CroupierDeck"
+      :sum="Calculate(CroupierDeck)"
+      header="Karty krupiera"
+    />
+    <Deck :deck="Deck" :sum="Calculate(Deck)" header="Twoje karty" />
 
-    <button @click="Hit()">Hit</button>
-    <button @click="Stand()">Stand</button>
-
-    <div class="score">
-      <div>Wynik</div>
-      <div v-html="score" />
+    <div class="buttons">
+      <button @click="Hit()">Hit</button>
+      <button @click="Stand()">Stand</button>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { Howl } from 'howler'
 
-interface Card {
-  name: string
-  value: number
-}
+import _card from '@/assets/audio/card-pick.mp3'
+const cardSound = new Howl({
+  src: [_card],
+  volume: 0.8,
+})
 
-const Cards: Card[] = [
-  { name: '2', value: 2 },
-  { name: '3', value: 3 },
-  { name: '4', value: 4 },
-  { name: '5', value: 5 },
-  { name: '6', value: 6 },
-  { name: '7', value: 7 },
-  { name: '8', value: 8 },
-  { name: '9', value: 9 },
-  { name: '10', value: 10 },
-  { name: 'Jack', value: 10 },
-  { name: 'Queen', value: 10 },
-  { name: 'King', value: 10 },
-  { name: 'Ace', value: 0 },
-]
+import Deck from './Deck.vue'
+import Jackpot from './Jackpot.vue'
+import { Card, Cards } from '../data/card'
 
 export default defineComponent({
-  components: {},
+  components: { Deck, Jackpot },
   data() {
     return {
       Deck: [] as Card[],
       CroupierDeck: [] as Card[],
       score: '',
+      lockhit: false,
     }
   },
   methods: {
-    PickCard(deck: Card[], n = 1) {
-      for (let i = 0; i < n; i++)
+    sleep(ms: number) {
+      return new Promise((resolve) => setTimeout(resolve, ms))
+    },
+    async PickCard(deck: Card[], n = 1) {
+      for (let i = 0; i < n; i++) {
+        await this.sleep(300)
+
+        cardSound.play()
+
         deck.push(Cards[Math.floor(Math.random() * Cards.length)])
+      }
     },
 
     Calculate(deck: Card[]): number {
@@ -86,38 +70,46 @@ export default defineComponent({
 
       return sum <= 21 ? sum : 0
     },
-    Hit() {
-      this.PickCard(this.Deck)
+    async Hit() {
+      if (this.lockhit) return
+      this.lockhit = true
+      await this.PickCard(this.Deck)
+
       if (this.Calculate(this.Deck) == 0) {
-        this.score = 'PRZEGRANA'
+        await this.sleep(1200)
+        this.$emit('gameover', -1)
       }
+      this.lockhit = false
     },
-    Stand() {
+    async Stand() {
+      this.lockhit = true
       if (this.Calculate(this.Deck) != 0) {
         // eslint-disable-next-line no-constant-condition
         while (true) {
-          if (this.Calculate(this.CroupierDeck) == 0) {
-            this.score = 'WYGRANA'
-            break
+          if (
+            (this.Calculate(this.CroupierDeck) < 17 ||
+              this.Calculate(this.CroupierDeck) < this.Calculate(this.Deck)) &&
+            this.Calculate(this.CroupierDeck) != 0
+          ) {
+            await this.PickCard(this.CroupierDeck)
+            continue
           }
 
-          if (
-            this.Calculate(this.CroupierDeck) < 17 ||
-            this.Calculate(this.CroupierDeck) < this.Calculate(this.Deck)
-          ) {
-            this.PickCard(this.CroupierDeck)
+          if (this.Calculate(this.CroupierDeck) < this.Calculate(this.Deck)) {
+            await this.sleep(1200)
+            this.$emit('gameover', '1')
+            break
           }
 
           if (this.Calculate(this.CroupierDeck) > this.Calculate(this.Deck)) {
-            this.score = 'PRZEGRANA'
+            await this.sleep(1200)
+            this.$emit('gameover', '-1')
             break
           }
 
-          if (
-            this.Calculate(this.CroupierDeck) == this.Calculate(this.Deck) &&
-            this.Calculate(this.CroupierDeck) >= 17
-          ) {
-            this.score = 'REMIS'
+          if (this.Calculate(this.CroupierDeck) == this.Calculate(this.Deck)) {
+            await this.sleep(1200)
+            this.$emit('gameover', '0')
             break
           }
         }
@@ -125,20 +117,40 @@ export default defineComponent({
     },
   },
 
-  mounted() {
-    this.PickCard(this.Deck, 2)
+  async mounted() {
     this.PickCard(this.CroupierDeck, 1)
+    await this.sleep(300)
+    this.PickCard(this.Deck, 2)
+    // console.log(Cards)
   },
 })
 </script>
 
 <style lang="scss">
-.section {
-  margin: 10px;
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin: 20px;
+
+  button {
+    padding: 10px 20px;
+    width: 150px;
+    cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    background-color: $gold;
+    color: white;
+    transition: background-color 0.3s;
+    font-size: 18px;
+
+    &:hover {
+      background-color: darken($gold, 10%);
+    }
+  }
 }
 
-.score {
-  margin: 10px;
-  font-weight: bold;
+.blackjack {
+  height: 85px;
 }
 </style>

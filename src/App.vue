@@ -16,6 +16,24 @@
   <router-view />
 </template>
 
+<script lang="ts">
+import { defineComponent } from 'vue'
+import { Howl } from 'howler'
+
+import _background from '@/assets/audio/background.mp3'
+const backgroundSound = new Howl({
+  src: [_background],
+  volume: 0.2,
+})
+
+export default defineComponent({
+  components: {},
+  mounted() {
+    backgroundSound.play()
+  },
+})
+</script>
+
 <style lang="scss">
 nav {
   height: $height;
