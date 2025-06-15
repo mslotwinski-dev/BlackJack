@@ -1,6 +1,9 @@
 <template>
   <div class="section">
-    <div class="header">{{ header }} ({{ sum }})</div>
+    <div class="header">
+      {{ header }}
+      <div class="sum">({{ sum }})</div>
+    </div>
     <div class="cards">
       <Card v-for="card in deck" :key="card.name" :card="card" />
     </div>
@@ -19,15 +22,23 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .header {
-  font-size: 25px;
+  font-size: 22px;
   font-weight: 500;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  .sum {
+    font-size: 15px;
+    font-weight: 400;
+  }
 }
 
 .section {
-  margin: 10px;
-  padding: 10px;
+  margin: 5px;
+  padding: 5px;
 }
 
 .score {

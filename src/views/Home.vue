@@ -12,7 +12,7 @@ export default defineComponent({
     Header,
   },
   mounted() {
-    document.title = 'Zeus Cassino'
+    document.title = 'Zeus Casino'
   },
 })
 </script>

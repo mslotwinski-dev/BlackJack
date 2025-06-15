@@ -1,12 +1,17 @@
 <template>
   <div class="moved"></div>
   <div class="home">
-    <div class="buttons" v-if="!showgame && first">
-      <button @click="start()">Zagraj</button>
+    <div class="play" v-if="!showgame && first">
+      <h2>BlackJack</h2>
+      <p>Naciśnij spację lub przycisk, aby rozpocząć.</p>
+      <div class="buttons">
+        <button @click="start()">Zagraj</button>
+      </div>
     </div>
     <Game v-if="showgame" @gameover="handleGameOver" />
     <div class="results" v-if="!showgame && !first">
       <h2>{{ score }}</h2>
+      <p>Naciśnij spację lub przycisk, aby zagrać ponownie.</p>
       <div class="buttons">
         <button @click="showgame = true">Zagraj ponownie</button>
       </div>
@@ -21,12 +26,6 @@ import { Howl } from 'howler'
 import _win from '@/assets/audio/win.mp3'
 import _draw from '@/assets/audio/draw.mp3'
 import _lose from '@/assets/audio/lose.mp3'
-import _start from '@/assets/audio/start.mp3'
-
-const startSound = new Howl({
-  src: [_start],
-  volume: 1,
-})
 
 const winSound = new Howl({
   src: [_win],
@@ -57,7 +56,9 @@ export default defineComponent({
     }
   },
   mounted() {
-    document.title = 'BlackJack | Zeus Cassino'
+    document.title = 'BlackJack | Zeus Casino'
+
+    window.addEventListener('keydown', this.handleKeydown)
   },
   methods: {
     handleGameOver(result: string) {
@@ -78,6 +79,19 @@ export default defineComponent({
       this.showgame = true
       this.first = false
     },
+    handleKeydown(event: KeyboardEvent) {
+      if (event.code === 'Space') {
+        event.preventDefault()
+        if (!this.showgame && this.first) {
+          this.start()
+        } else if (!this.showgame && !this.first) {
+          this.showgame = true
+        }
+      }
+    },
+  },
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.handleKeydown)
   },
 })
 </script>
@@ -87,7 +101,7 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(75vh - $height); // Adjusted to account for header height
+  height: calc(80vh - $height); // Adjusted to account for header height
 }
 
 h2 {

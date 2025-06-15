@@ -36,7 +36,7 @@ export default defineComponent({
 
 .title {
   font-family: 'Orbitron', sans-serif;
-  font-size: 4rem;
+  font-size: 3.5rem;
   background: linear-gradient(90deg, $gold, #ff4b2b);
   -webkit-background-clip: text;
   background-clip: text;

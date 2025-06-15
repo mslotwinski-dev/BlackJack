@@ -66,8 +66,8 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .card {
-  width: 110px;
-  height: 176px;
+  width: 100px;
+  height: 160px;
   background-color: $light;
   border-radius: 10px;
   color: $dark;
@@ -76,15 +76,15 @@ export default defineComponent({
 }
 
 .icon {
-  width: 25px;
-  height: 25px;
+  width: 22px;
+  height: 22px;
   &.small {
-    width: 15px;
-    height: 15px;
+    width: 14px;
+    height: 14px;
   }
   &.ace {
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
   }
 }
 
@@ -102,7 +102,7 @@ export default defineComponent({
   flex-direction: column;
   gap: 5px;
   text-align: center;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 500;
   &.reversed {
     transform: rotate(180deg);
@@ -110,7 +110,7 @@ export default defineComponent({
 }
 
 .cardicon {
-  font-size: 30px;
+  font-size: 28px;
 }
 
 .rose {

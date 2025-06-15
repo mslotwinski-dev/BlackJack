@@ -22,9 +22,15 @@
 import { defineComponent } from 'vue'
 import { Howl } from 'howler'
 
-import _card from '@/assets/audio/card-pick.mp3'
+import _card from '@/assets/audio/card.mp3'
 const cardSound = new Howl({
   src: [_card],
+  volume: 0.5,
+})
+
+import _stand from '@/assets/audio/stand.mp3'
+const standSound = new Howl({
+  src: [_stand],
   volume: 0.8,
 })
 
@@ -68,60 +74,83 @@ export default defineComponent({
         sum += sum < 11 ? 11 : 1
       }
 
-      return sum <= 21 ? sum : 0
+      return sum
     },
     async Hit() {
       if (this.lockhit) return
       this.lockhit = true
+
       await this.PickCard(this.Deck)
 
-      if (this.Calculate(this.Deck) == 0) {
+      if (this.Calculate(this.Deck) > 21) {
         await this.sleep(1200)
         this.$emit('gameover', -1)
       }
       this.lockhit = false
     },
     async Stand() {
+      const wait = 2000
       this.lockhit = true
+
+      standSound.play()
+      await this.sleep(wait / 2)
+
       if (this.Calculate(this.Deck) != 0) {
         // eslint-disable-next-line no-constant-condition
         while (true) {
+          if (this.Calculate(this.CroupierDeck) > 21) {
+            await this.sleep(wait)
+            this.$emit('gameover', '1')
+            break
+          }
+
           if (
-            (this.Calculate(this.CroupierDeck) < 17 ||
-              this.Calculate(this.CroupierDeck) < this.Calculate(this.Deck)) &&
-            this.Calculate(this.CroupierDeck) != 0
+            this.Calculate(this.CroupierDeck) < 17 ||
+            this.Calculate(this.CroupierDeck) < this.Calculate(this.Deck)
           ) {
             await this.PickCard(this.CroupierDeck)
             continue
           }
 
           if (this.Calculate(this.CroupierDeck) < this.Calculate(this.Deck)) {
-            await this.sleep(1200)
+            await this.sleep(wait)
             this.$emit('gameover', '1')
             break
           }
 
           if (this.Calculate(this.CroupierDeck) > this.Calculate(this.Deck)) {
-            await this.sleep(1200)
+            await this.sleep(wait)
             this.$emit('gameover', '-1')
             break
           }
 
           if (this.Calculate(this.CroupierDeck) == this.Calculate(this.Deck)) {
-            await this.sleep(1200)
+            await this.sleep(wait)
             this.$emit('gameover', '0')
             break
           }
         }
       }
     },
+    handleKeydown(event: KeyboardEvent) {
+      if (event.code === 'Space') {
+        event.preventDefault()
+        this.Hit()
+      } else if (event.code === 'Enter') {
+        this.Stand()
+      }
+    },
   },
 
   async mounted() {
+    window.addEventListener('keydown', this.handleKeydown)
+
     this.PickCard(this.CroupierDeck, 1)
-    await this.sleep(300)
-    this.PickCard(this.Deck, 2)
+    setTimeout(() => this.PickCard(this.Deck, 2), 300)
     // console.log(Cards)
+  },
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.handleKeydown)
   },
 })
 </script>
@@ -131,7 +160,7 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   gap: 20px;
-  margin: 20px;
+  margin: 15px;
 
   button {
     padding: 10px 20px;
@@ -142,7 +171,7 @@ export default defineComponent({
     background-color: $gold;
     color: white;
     transition: background-color 0.3s;
-    font-size: 18px;
+    font-size: 16px;
 
     &:hover {
       background-color: darken($gold, 10%);
