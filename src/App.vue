@@ -24,6 +24,7 @@ import _background from '@/assets/audio/background.mp3'
 const backgroundSound = new Howl({
   src: [_background],
   volume: 0.2,
+  loop: true,
 })
 
 export default defineComponent({
