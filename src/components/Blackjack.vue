@@ -278,10 +278,9 @@ export default defineComponent({
     },
     async initialDeal() {
       this.actionLocked = true
-      // await this.dealCard(this.playerDecks[0])
+      await this.dealCard(this.playerDecks[0])
       await this.dealCard(this.croupierDeck)
-      // await this.dealCard(this.playerDecks[0])
-      this.playerDecks[0] = [Cards[51], Cards[51]]
+      await this.dealCard(this.playerDecks[0])
 
       if (this.calculatePoints(this.playerDecks[0]) === 21) {
         await this.sleep(4000)
