@@ -3,18 +3,46 @@
   <div class="home">
     <div class="play" v-if="!showgame && first">
       <h2>BlackJack</h2>
-      <p>Naciśnij spację lub przycisk, aby rozpocząć.</p>
-      <div class="buttons">
-        <button @click="start()">Zagraj</button>
+      <p v-if="cash.isPossibleToBuy(10)">
+        Wybierz bet, a następnie naciśnij spację lub przycisk, aby rozpocząć.
+      </p>
+      <div class="buttons" v-if="cash.isPossibleToBuy(10)">
+        <button
+          class="bet"
+          v-for="bet in bets"
+          :key="bet"
+          @click="this.bet = bet"
+          :class="{ active: this.bet === bet }"
+        >
+          {{ bet }} <ic icon="euro-sign" />
+        </button>
       </div>
+      <div class="buttons" v-if="cash.isPossibleToBuy(10)">
+        <button @click="start(), (this.first = false)">Zagraj</button>
+      </div>
+      <p v-else>Nie stać cię na bet. Idź pracuj.</p>
     </div>
     <Game v-if="showgame" @gameover="handleGameOver" />
     <div class="results" v-if="!showgame && !first">
       <h2>{{ score }}</h2>
-      <p>Naciśnij spację lub przycisk, aby zagrać ponownie.</p>
-      <div class="buttons">
-        <button @click="showgame = true">Zagraj ponownie</button>
+      <p v-if="cash.isPossibleToBuy(10)">
+        Naciśnij spację lub przycisk, aby zagrać ponownie.
+      </p>
+      <div class="buttons" v-if="cash.isPossibleToBuy(10)">
+        <button
+          class="bet"
+          v-for="bet in bets"
+          :key="bet"
+          @click="this.bet = bet"
+          :class="{ active: this.bet === bet }"
+        >
+          {{ bet }} <ic icon="euro-sign" />
+        </button>
       </div>
+      <div class="buttons" v-if="cash.isPossibleToBuy(10)">
+        <button @click="start()">Zagraj ponownie</button>
+      </div>
+      <p v-else>Nie stać cię na bet. Idź pracuj.</p>
     </div>
   </div>
 </template>
@@ -22,6 +50,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { Howl } from 'howler'
+import { useCashStore } from '@/store/cash'
 
 import _win from '@/assets/audio/win.mp3'
 import _draw from '@/assets/audio/draw.mp3'
@@ -53,6 +82,9 @@ export default defineComponent({
       showgame: false,
       score: '',
       first: true,
+      bet: 10,
+      bets: this.getBets(),
+      cash: useCashStore(),
     }
   },
   mounted() {
@@ -61,31 +93,77 @@ export default defineComponent({
     window.addEventListener('keydown', this.handleKeydown)
   },
   methods: {
+    getBets() {
+      return [
+        10,
+        20,
+        30,
+        50,
+        75,
+        100,
+        150,
+        200, //
+        250,
+        350,
+        500,
+        650,
+        750,
+        850,
+        1000,
+      ].filter((bet) => useCashStore().isPossibleToBuy(bet))
+    },
     handleGameOver(result: string) {
-      if (result === '1') {
+      if (result === '2') {
         this.score = 'Wygrałeś'
         winSound.play()
+        this.cash.addCash(2.5 * this.bet)
+      } else if (result === '1') {
+        this.score = 'Wygrałeś'
+        winSound.play()
+        this.cash.addCash(2 * this.bet)
       } else if (result === '0') {
         this.score = 'Remis'
         drawSound.play()
+        this.cash.addCash(this.bet)
       } else {
         this.score = 'Przegrałeś'
         loseSound.play()
       }
 
       this.showgame = false
+      this.bets = this.getBets()
+
+      if (!this.cash.isPossibleToBuy(this.bet)) {
+        this.bet = 10
+      }
     },
     start() {
       this.showgame = true
-      this.first = false
+
+      this.cash.takeCash(this.bet)
     },
     handleKeydown(event: KeyboardEvent) {
-      if (event.code === 'Space') {
+      if (
+        (event.code === 'Space' || event.code === 'Enter') &&
+        !this.showgame
+      ) {
         event.preventDefault()
         if (!this.showgame && this.first) {
           this.start()
         } else if (!this.showgame && !this.first) {
           this.showgame = true
+        }
+      } else if (event.code === 'ArrowRight' && !this.showgame) {
+        event.preventDefault()
+        const currentIndex = this.bets.indexOf(this.bet)
+        if (currentIndex < this.bets.length - 1) {
+          this.bet = this.bets[currentIndex + 1]
+        }
+      } else if (event.code === 'ArrowLeft' && !this.showgame) {
+        event.preventDefault()
+        const currentIndex = this.bets.indexOf(this.bet)
+        if (currentIndex > 0) {
+          this.bet = this.bets[currentIndex - 1]
         }
       }
     },
@@ -101,7 +179,8 @@ export default defineComponent({
   display: flex;
   justify-content: center;
   align-items: center;
-  height: calc(80vh - $height); // Adjusted to account for header height
+  min-height: calc(80vh - $height); // Adjusted to account for header height
+  text-align: center;
 }
 
 h2 {
@@ -117,6 +196,8 @@ h2 {
   justify-content: center;
   gap: 20px;
   margin: 20px;
+  flex-wrap: wrap;
+  max-width: 800px;
 
   button {
     padding: 10px 20px;
@@ -131,6 +212,19 @@ h2 {
 
     &:hover {
       background-color: darken($gold, 10%);
+    }
+
+    &.bet {
+      width: 80px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      background-color: darken($dark_gray, 20%);
+    }
+
+    &.active {
+      background-color: $rose;
     }
   }
 }

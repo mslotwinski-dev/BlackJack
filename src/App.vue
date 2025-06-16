@@ -10,26 +10,15 @@
       <div>Zeus Casino nie ponosi odpowiedzialności za Twoje działania.</div>
     </div>
   </div>
-  <nav>
-    <div class="logo">
-      <img src="@/assets/logo.png" />
-      <span class="name"> Zeus Casino </span>
-    </div>
-    <div class="links">
-      <div>
-        <router-link to="/">Home</router-link>
-      </div>
-      <div>
-        <router-link to="/blackjack">Blackjack</router-link>
-      </div>
-    </div>
-  </nav>
+  <Navbar />
   <router-view />
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { Howl } from 'howler'
+
+import Navbar from '@/components/Navbar.vue'
 
 import _start from '@/assets/audio/start.mp3'
 import _background from '@/assets/audio/background.mp3'
@@ -57,7 +46,9 @@ export default defineComponent({
       isadult: false,
     }
   },
-  components: {},
+  components: {
+    Navbar,
+  },
   mounted() {
     backgroundSound.play()
     ambientSound.play()
@@ -72,25 +63,6 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
-nav {
-  height: $height;
-  img {
-    width: 50px;
-    height: 50px;
-    margin-right: 10px;
-  }
-  color: #fff;
-  border-radius: 10px;
-  font-size: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: space-evenly;
-  padding: 5px;
-  position: fixed;
-  z-index: 10;
-  width: 100%;
-}
-
 @import url('https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap');
 
 .name {

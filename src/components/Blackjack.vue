@@ -1,7 +1,7 @@
 <template>
   <div class="cont">
     <div class="blackjack">
-      <Jackpot v-if="Calculate(Deck) == 21" />
+      <Jackpot v-if="Calculate(Deck) == 21 && this.Deck.length == 2" />
     </div>
 
     <Deck
@@ -53,6 +53,7 @@ export default defineComponent({
       return new Promise((resolve) => setTimeout(resolve, ms))
     },
     async PickCard(deck: Card[], n = 1) {
+      this.lockhit = true
       for (let i = 0; i < n; i++) {
         await this.sleep(300)
 
@@ -60,6 +61,12 @@ export default defineComponent({
 
         deck.push(Cards[Math.floor(Math.random() * Cards.length)])
       }
+
+      if (this.Calculate(deck) == 21 && deck.length == 2) {
+        await this.sleep(5000)
+        this.$emit('gameover', '2')
+      }
+      this.lockhit = false
     },
 
     Calculate(deck: Card[]): number {
@@ -86,6 +93,7 @@ export default defineComponent({
         await this.sleep(1200)
         this.$emit('gameover', -1)
       }
+
       this.lockhit = false
     },
     async Stand() {
