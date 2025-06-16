@@ -24,6 +24,13 @@
       <button @click="double()" :disabled="isDoubleDisabled">Double</button>
       <button @click="split()" :disabled="!canSplit">Split</button>
     </div>
+
+    <div class="controls">
+      <div>Space - hit,</div>
+      <div>Enter - stand,</div>
+      <div>D - double,</div>
+      <div>S - split</div>
+    </div>
   </div>
 </template>
 
@@ -148,31 +155,23 @@ export default defineComponent({
       await this.dealCard(this.playerDecks[this.currentHandIndex])
 
       const sum = this.calculatePoints(this.playerDecks[this.currentHandIndex])
+
       if (sum > 21) {
-        await this.sleep(2500)
         this.roundResults[this.currentHandIndex] = 'lose'
 
         if (this.currentHandIndex === this.playerDecks.length - 1) {
-          this.stand()
+          this.checkIfPassed()
         } else {
           this.currentHandIndex++
           this.actionLocked = false
           return
         }
+      } else {
+        this.actionLocked = false
       }
-      this.actionLocked = false
     },
 
-    async stand() {
-      this.actionLocked = true
-      standSound.play()
-
-      if (!(this.currentHandIndex === this.playerDecks.length - 1)) {
-        this.currentHandIndex++
-        this.actionLocked = false
-        return
-      }
-
+    async checkIfPassed() {
       let passed = 0
 
       for (const deck of this.playerDecks) {
@@ -184,6 +183,17 @@ export default defineComponent({
         this.roundResults = Array(this.playerDecks.length).fill('lose')
         await this.sleep(2000)
         this.$emit('gameover', '-1')
+      }
+    },
+
+    async stand() {
+      this.actionLocked = true
+
+      standSound.play()
+
+      if (!(this.currentHandIndex === this.playerDecks.length - 1)) {
+        this.currentHandIndex++
+        this.actionLocked = false
         return
       }
 
@@ -255,12 +265,18 @@ export default defineComponent({
       this.actionLocked = false
     },
     handleKeydown(event: KeyboardEvent) {
-      if (event.code === 'Space') {
+      if (event.code === 'Space' && !this.actionLocked) {
         event.preventDefault()
         this.hit()
-      } else if (event.code === 'Enter') {
+      } else if (event.code === 'Enter' && !this.actionLocked) {
         event.preventDefault()
         this.stand()
+      } else if (event.key.toLowerCase() === 'd' && !this.isDoubleDisabled) {
+        event.preventDefault()
+        this.double()
+      } else if (event.key.toLowerCase() === 's' && this.canSplit) {
+        event.preventDefault()
+        this.split()
       }
     },
     async initialDeal() {
@@ -327,5 +343,11 @@ export default defineComponent({
   border: 2px solid $light;
   box-shadow: 0 0 10px $light;
   border-radius: 10px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
 }
 </style>
