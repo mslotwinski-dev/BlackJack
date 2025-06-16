@@ -72,7 +72,8 @@ export default defineComponent({
       const hand = this.playerDecks[this.currentHandIndex]
       return (
         this.actionLocked ||
-        hand.length !== 2 ||
+        this.playerDecks.length > 1 ||
+        hand.length != 2 ||
         !this.cash.isPossibleToBuy(this.bet)
       )
     },
