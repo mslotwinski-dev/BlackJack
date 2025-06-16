@@ -119,6 +119,33 @@ export default defineComponent({
           this.cash.addCash(this.bet)
           break
         }
+        case 'split2': {
+          // Split: Wygrana + Remis
+          this.score = 'Split: Wygrałeś'
+          winSound.play()
+          this.cash.addCash(4 * this.bet)
+          break
+        }
+        case 'split1': {
+          // Split: Wygrana + Remis
+          this.score = 'Split: Wygrana i remis'
+          winSound.play()
+          this.cash.addCash(3 * this.bet)
+          break
+        }
+        case 'split0': {
+          this.score = 'Remis'
+          drawSound.play()
+          this.cash.addCash(2 * this.bet)
+          break
+        }
+        case 'split-1': {
+          // Split: Przegrana + Remis
+          this.score = 'Split: Przegrana i remis'
+          loseSound.play()
+          this.cash.addCash(this.bet)
+          break
+        }
         // Przegrana
         default:
           this.score = 'Przegrałeś'
