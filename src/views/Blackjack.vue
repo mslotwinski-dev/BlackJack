@@ -9,20 +9,22 @@
       <div class="buttons" v-if="cash.isPossibleToBuy(10)">
         <button
           class="bet"
-          v-for="bet in bets"
-          :key="bet"
-          @click="this.bet = bet"
-          :class="{ active: this.bet === bet }"
+          v-for="b in bets"
+          :key="b"
+          @click="this.bet = b"
+          :class="{ active: this.bet === b }"
         >
-          {{ bet }} <ic icon="euro-sign" />
+          {{ b }} <ic icon="euro-sign" />
         </button>
       </div>
       <div class="buttons" v-if="cash.isPossibleToBuy(10)">
-        <button @click="start(), (this.first = false)">Zagraj</button>
+        <button @click="start()">Zagraj</button>
       </div>
-      <p v-else>Nie stać cię na bet. Idź pracuj.</p>
+      <p v-else>Nie stać cię na grę. Wróć z większą gotówką.</p>
     </div>
-    <Game v-if="showgame" @gameover="handleGameOver" />
+
+    <Game v-if="showgame" @gameover="handleGameOver" :bet="bet" :key="gameId" />
+
     <div class="results" v-if="!showgame && !first">
       <h2>{{ score }}</h2>
       <p v-if="cash.isPossibleToBuy(10)">
@@ -31,18 +33,18 @@
       <div class="buttons" v-if="cash.isPossibleToBuy(10)">
         <button
           class="bet"
-          v-for="bet in bets"
-          :key="bet"
-          @click="this.bet = bet"
-          :class="{ active: this.bet === bet }"
+          v-for="b in bets"
+          :key="b"
+          @click="this.bet = b"
+          :class="{ active: this.bet === b }"
         >
-          {{ bet }} <ic icon="euro-sign" />
+          {{ b }} <ic icon="euro-sign" />
         </button>
       </div>
       <div class="buttons" v-if="cash.isPossibleToBuy(10)">
         <button @click="start()">Zagraj ponownie</button>
       </div>
-      <p v-else>Nie stać cię na bet. Idź pracuj.</p>
+      <p v-else>Nie stać cię na grę. Wróć z większą gotówką.</p>
     </div>
   </div>
 </template>
@@ -56,20 +58,9 @@ import _win from '@/assets/audio/win.mp3'
 import _draw from '@/assets/audio/draw.mp3'
 import _lose from '@/assets/audio/lose.mp3'
 
-const winSound = new Howl({
-  src: [_win],
-  volume: 1,
-})
-
-const drawSound = new Howl({
-  src: [_draw],
-  volume: 1,
-})
-
-const loseSound = new Howl({
-  src: [_lose],
-  volume: 1,
-})
+const winSound = new Howl({ src: [_win], volume: 1 })
+const drawSound = new Howl({ src: [_draw], volume: 1 })
+const loseSound = new Howl({ src: [_lose], volume: 1 })
 
 import Game from '@/components/Blackjack.vue'
 
@@ -85,74 +76,78 @@ export default defineComponent({
       bet: 10,
       bets: this.getBets(),
       cash: useCashStore(),
+      gameId: 0, // Klucz do resetowania komponentu gry
     }
   },
   mounted() {
     document.title = 'BlackJack | Zeus Casino'
-
     window.addEventListener('keydown', this.handleKeydown)
   },
   methods: {
     getBets() {
       return [
-        10,
-        20,
-        30,
-        50,
-        75,
-        100,
-        150,
-        200, //
-        250,
-        350,
-        500,
-        650,
-        750,
-        850,
-        1000,
+        10, 20, 30, 50, 75, 100, 150, 200, 250, 350, 500, 650, 750, 850, 1000,
       ].filter((bet) => useCashStore().isPossibleToBuy(bet))
     },
     handleGameOver(result: string) {
-      if (result === '2') {
-        this.score = 'Wygrałeś'
-        winSound.play()
-        this.cash.addCash(2.5 * this.bet)
-      } else if (result === '1') {
-        this.score = 'Wygrałeś'
-        winSound.play()
-        this.cash.addCash(2 * this.bet)
-      } else if (result === '0') {
-        this.score = 'Remis'
-        drawSound.play()
-        this.cash.addCash(this.bet)
-      } else {
-        this.score = 'Przegrałeś'
-        loseSound.play()
+      switch (result) {
+        // Gracz postawił 2 * bet, więc wygrana to 2 * bet, a zwrot to 4 * bet.
+        case '3': {
+          this.score = 'Wygrałeś (Double)!'
+          winSound.play()
+          this.cash.addCash(4 * this.bet)
+          break
+        }
+        // Wygrana za Blackjacka (3:2), zwrot 2.5 * bet
+        case '2': {
+          this.score = 'Blackjack!'
+          winSound.play()
+          this.cash.addCash(2.5 * this.bet)
+          break
+        }
+        // Normalna wygrana (1:1), zwrot 2 * bet
+        case '1': {
+          this.score = 'Wygrałeś'
+          this.cash.addCash(2 * this.bet)
+          winSound.play()
+          break
+        }
+        // Remis, zwrot stawki
+        case '0': {
+          this.score = 'Remis'
+          drawSound.play()
+          this.cash.addCash(this.bet)
+          break
+        }
+        // Przegrana
+        default:
+          this.score = 'Przegrałeś'
+          loseSound.play()
+        // Stawka już została pobrana, więc nic nie robimy
       }
 
       this.showgame = false
+      this.first = false // Gra się odbyła
       this.bets = this.getBets()
 
+      // Jeśli aktualny bet jest już niemożliwy, zresetuj do najniższego
       if (!this.cash.isPossibleToBuy(this.bet)) {
         this.bet = 10
       }
     },
     start() {
+      this.gameId++ // Zwiększenie klucza resetuje komponent <Game>
+      this.cash.takeCash(this.bet) // Pobierz stawkę
       this.showgame = true
-
-      this.cash.takeCash(this.bet)
     },
     handleKeydown(event: KeyboardEvent) {
       if (
         (event.code === 'Space' || event.code === 'Enter') &&
-        !this.showgame
+        !this.showgame &&
+        this.cash.isPossibleToBuy(this.bet)
       ) {
         event.preventDefault()
-        if (!this.showgame && this.first) {
-          this.start()
-        } else if (!this.showgame && !this.first) {
-          this.showgame = true
-        }
+        this.start()
       } else if (event.code === 'ArrowRight' && !this.showgame) {
         event.preventDefault()
         const currentIndex = this.bets.indexOf(this.bet)
@@ -175,11 +170,12 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
+/* Style pozostają bez zmian */
 .home {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(80vh - $height); // Adjusted to account for header height
+  min-height: calc(80vh - $height);
   text-align: center;
 }
 
@@ -188,7 +184,7 @@ h2 {
   font-weight: 500;
   text-align: center;
   margin: 20px;
-  color: $gold; // Assuming $gold is defined in your SCSS variables
+  color: $gold;
 }
 
 .buttons {
