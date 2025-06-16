@@ -208,7 +208,7 @@ export default defineComponent({
       const results = this.roundResults
 
       if (results.length === 1) {
-        if (results[0] === 'win') return '1'
+        if (results[0] === 'win') return this.isDoubleDown ? '3' : '1'
         if (results[0] === 'draw') return '0'
         return '-1'
       }
@@ -224,35 +224,7 @@ export default defineComponent({
       if (loseCount === 1 && drawCount === 1) return 'split-1'
       return '-1'
     },
-    determineWinner() {
-      const playerPoints = this.playerSum
-      const croupierPoints = this.croupierSum
 
-      if (croupierPoints > 21 || playerPoints > croupierPoints) {
-        this.$emit('gameover', this.isDoubleDown ? '3' : '1')
-      } else if (croupierPoints > playerPoints) {
-        this.$emit('gameover', '-1')
-      } else {
-        this.$emit('gameover', '0')
-      }
-    },
-    determineSplitWinner() {
-      const results = this.playerDecks.map((deck) => {
-        const playerPoints = this.calculatePoints(deck)
-        const croupierPoints = this.croupierSum
-        if (playerPoints > 21) return -1
-        if (croupierPoints > 21 || playerPoints > croupierPoints) return 1
-        if (croupierPoints > playerPoints) return -1
-        return 0
-      })
-
-      let sum = 0
-      for (const result of results) {
-        sum += result
-      }
-
-      this.$emit('gameover', 'split' + String(sum))
-    },
     async split() {
       if (!this.canSplit) return
 
