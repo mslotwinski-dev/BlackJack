@@ -153,7 +153,7 @@ export default defineComponent({
         this.roundResults[this.currentHandIndex] = 'lose'
 
         if (this.currentHandIndex === this.playerDecks.length - 1) {
-          this.$emit('gameover', '-1')
+          this.stand()
         } else {
           this.currentHandIndex++
           this.actionLocked = false
