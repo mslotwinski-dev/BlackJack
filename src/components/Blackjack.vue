@@ -173,6 +173,20 @@ export default defineComponent({
         return
       }
 
+      let passed = 0
+
+      for (const deck of this.playerDecks) {
+        const points = this.calculatePoints(deck)
+        if (points > 21) passed++
+      }
+
+      if (passed === this.playerDecks.length) {
+        this.roundResults = Array(this.playerDecks.length).fill('lose')
+        await this.sleep(2000)
+        this.$emit('gameover', '-1')
+        return
+      }
+
       while (this.croupierSum < 17) {
         await this.dealCard(this.croupierDeck)
       }
