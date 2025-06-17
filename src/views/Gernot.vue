@@ -16,8 +16,8 @@
 </template>
 
 <script lang="ts">
-import { useCashStore } from '@/store/cash'
 import { defineComponent } from 'vue'
+import { useCashStore } from '@/store/cash'
 
 class Plum {
   x: number
@@ -54,14 +54,14 @@ export default defineComponent({
 
     this.intervalId = window.setInterval(() => {
       this.plums.forEach((plum) => {
-        plum.y += 4 * 0.75
+        plum.y += 1.5
       })
 
       // Usuwamy śliwki, które spadły poniżej 850
       this.plums = this.plums.filter(
         (plum) => plum.y < 850 && plum.clicked === false
       )
-    }, 8)
+    }, 2)
 
     this.spawnIntervalId = window.setInterval(() => {
       this.plums.push(new Plum())
