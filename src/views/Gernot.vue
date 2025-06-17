@@ -54,18 +54,18 @@ export default defineComponent({
 
     this.intervalId = window.setInterval(() => {
       this.plums.forEach((plum) => {
-        plum.y += 0.75
+        plum.y += 4 * 0.75
       })
 
       // Usuwamy śliwki, które spadły poniżej 850
       this.plums = this.plums.filter(
         (plum) => plum.y < 850 && plum.clicked === false
       )
-    }, 1)
+    }, 8)
 
     this.spawnIntervalId = window.setInterval(() => {
       this.plums.push(new Plum())
-    }, 2000)
+    }, 500)
   },
   beforeUnmount() {
     if (this.intervalId) {

@@ -33,7 +33,7 @@ export default defineComponent({
         { id: 'Zbieraj mirabelki', link: '/gernot' },
         // { id: 'Zostań barmanem', link: '/barman' },
         // { id: 'Sprzedawaj nieruchomości', link: '/estate' },
-        // { id: 'Lataj z Wizz Air', link: '/wizzair' },
+        { id: 'Lataj z Wizz Air', link: '/wizzair' },
       ],
       cash: useCashStore(),
     }
